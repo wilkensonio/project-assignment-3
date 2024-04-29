@@ -12,7 +12,7 @@ import os
 class client:
 
     fileList = []  # list to store the file information
-    uploadList = []  # list to store list in the client's folder
+    uploadList = []  
 
     # Constructor: load client configuration from config file
     def __init__(self):
@@ -71,10 +71,10 @@ class client:
 
     # Get file list from server by sending the request
     def getFileList(self):
-        mySocket = self.connect()
-        mySocket.send(protocol.prepareMsg(protocol.HEAD_REQUEST, " "))
-        header, msg = protocol.decodeMsg(mySocket.recv(1024).decode())
-        mySocket.close()
+        s_socket = self.connect()
+        s_socket.send(protocol.prepareMsg(protocol.HEAD_REQUEST, " "))
+        header, msg = protocol.decodeMsg(s_socket.recv(1024).decode())
+        s_socket.close()
         if header == protocol.HEAD_LIST:
             files = msg.split(",")
             self.fileList = []
@@ -119,12 +119,12 @@ class client:
     # and download the file from server
     def downloadFile(self, fileName):
         try:
-            mySocket = self.connect()
-            mySocket.send(protocol.prepareMsg(protocol.HEAD_DOWNLOAD, fileName))
+            s_socket = self.connect()
+            s_socket.send(protocol.prepareMsg(protocol.HEAD_DOWNLOAD, fileName))
             with open(self.downloadPath + "/" + fileName, "wb") as f:
                 print("file opened")
                 while True:
-                    data = mySocket.recv(1024)
+                    data = s_socket.recv(1024)
                     if not data:
                         break
                     f.write(data)
@@ -132,21 +132,21 @@ class client:
         except FileNotFoundError as e:
             print("File not found:", e)
 
-        mySocket.close()
+        s_socket.close()
 
     # ********************************************
     # Please complete the upLoadFile function, the function takes a file name as
     # an input
     def upLoadFile(self, fileName):
         try:
-            mySocket = self.connect()
-            mySocket.send(protocol.prepareMsg(protocol.HEAD_UPLOAD, fileName))
+            s_socket = self.connect()
+            s_socket.send(protocol.prepareMsg(protocol.HEAD_UPLOAD, fileName))
             with open(self.downloadPath + "/" + fileName, "rb") as f:
                 print(fileName + " sent to Server")
                 data = f.read(1024)
 
                 while data:
-                    mySocket.send(data)
+                    s_socket.send(data)
                     data = f.read(1024)
 
                 print(fileName + " has been uploaded")
@@ -158,7 +158,7 @@ class client:
         except Exception as e:
             print("Error:", e)
 
-        mySocket.close()
+        s_socket.close()
 
     # ********************************************
     # Please complete the select Upload file function,
@@ -167,10 +167,10 @@ class client:
     # The return value should be a file name
 
     def selectUploadFile(self):
+        ans = -1
         try:
             if len(self.uploadList) == 0:
-                self.getUploadList()
-            ans = -1
+                self.getUploadList() 
             while ans < 0 or ans > len(self.uploadList) + 1:
                 self.printUploadList()
                 print(
@@ -179,13 +179,13 @@ class client:
                 ans = int(input("File Number: "))
                 if ans > 0 and ans < len(self.uploadList) + 1:
                     return self.uploadList[ans - 1]
-        except ValueError as e: 
-            ans = -1
+        except ValueError as e:  
             print("Invalid number", e)
         except TypeError as e:
             print("Type Error:", e)
         except Exception as e:
             print("Error:", e)
+        ans = -1
 
     def getUploadList(self):
         self.uploadList = os.listdir(self.downloadPath)
